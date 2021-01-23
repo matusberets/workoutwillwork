@@ -1,8 +1,10 @@
 # I used a code from CS50 ProblemSet no.8. Thank you for that CS50 team !
 import os
 import sys
+import psycopg2
+import psycopg2.extras
 
-from cs50 import SQL
+#from cs50 import SQL
 from flask import Flask, flash, jsonify, redirect, render_template, request, session
 from flask_session import Session
 from tempfile import mkdtemp
@@ -14,7 +16,7 @@ from helpers import login_required, error
 # Configure application
 app = Flask(__name__)
 
-# Ensure templates are auto-reloaded
+# Ensure templates are auto-reloadedvs
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 # Ensure responses aren't cached
@@ -31,9 +33,14 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# Configure CS50 Library to use SQLite database
-db = SQL("sqlite:///workout.db")
+#  
+DB_HOST = "ec2-52-211-161-21.eu-west-1.compute.amazonaws.com"
+DB_NAME = "d5gpufg0ht2tcv"
+DB_USER = "jorqzsdckjpref"
+DB_PASS = "e757bbed8d7f33357c6c52e446df4b9863300b89ad7cdfbee42682a247e1e4cd"
 
+conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
+db = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 #global variable list for storing chosen picture
 chosen_exercise = []
@@ -62,8 +69,10 @@ def register():
         if password != confirm:
             return error("Your passwords do not match, confirm identical password")
         else:
-            db.execute("INSERT INTO user (username, hash) VALUES (?, ?)", name, generate_password_hash(password))
-
+            db.execute("INSERT INTO user (username, hash) VALUES (%s,%s);", (name, generate_password_hash(password)))
+            # Postgresql to commit query
+            conn.commit()
+            
             rows = db.execute("SELECT * FROM user WHERE username = :username",
                           username=request.form.get("username"))
 
@@ -72,6 +81,11 @@ def register():
 
             session["user_id"] = rows[0]["id"]
             return redirect("/pickup")
+
+            # close database connection
+            db.close()
+            conn.close()
+
 
     return redirect("/")
 
