@@ -69,24 +69,13 @@ def register():
         if password != confirm:
             return error("Your passwords do not match, confirm identical password")
         else:
-            db.execute("INSERT INTO user (username, hash) VALUES (%s,%s);", (name, generate_password_hash(password)))
-            # Postgresql to commit query
-            conn.commit()
             
-            rows = db.execute("SELECT * FROM user WHERE username = :username",
-                          username=request.form.get("username"))
+            db.execute("INSERT INTO users (username, hash) VALUES (%s,%s)", (name, generate_password_hash(password)))
 
-            if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
-                return error("Invalid username or password !")
+            # Postgresql to commit query
+            conn.commit()      
 
-            session["user_id"] = rows[0]["id"]
-            return redirect("/pickup")
-
-            # close database connection
-            db.close()
-            conn.close()
-
-
+                    
     return redirect("/")
 
 
@@ -100,24 +89,29 @@ def login():
             return error("You must provide username !")
         elif not request.form.get("password"):
             return error("You must provide password !")
+        
+        username = request.form.get("username")
 
-        rows = db.execute("SELECT * FROM user WHERE username = :username",
-                          username=request.form.get("username"))
+        rows = db.execute("SELECT * FROM users WHERE username = (%s)", (username,))
+
+        # Postgresql to commit query
+        conn.commit()
+        
+        print(db.fetchall())
+        print("DEBUG1")
+        print(rows)
+        print(type(rows))
 
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
             return error("Invalid username or password !")
 
         session["user_id"] = rows[0]["id"]
+        
         return redirect("/pickup")
 
     else:
         return render_template("login.html")
 
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/")
 
 # choose an exercise
 @app.route("/pickup", methods=["GET", "POST"])
@@ -193,3 +187,14 @@ def history():
     #select data to be shown based on user logged in
     rows = db.execute("SELECT datetime, exercise_name, series, reps, weight FROM history WHERE id = ?", session["user_id"])
     return render_template("history.html", rows=rows)
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+
+    # close database connection
+    db.close()
+    conn.close()
+        
+    return redirect("/")
