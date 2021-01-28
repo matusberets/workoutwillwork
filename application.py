@@ -91,7 +91,6 @@ def login():
             return error("You must provide password !")
         
         username = request.form.get("username")
-
         rows = db.execute("SELECT * FROM users WHERE username = (%s)", (username,))
 
         # Postgresql to commit query
