@@ -69,7 +69,6 @@ def register():
         if password != confirm:
             return error("Your passwords do not match, confirm identical password")
         else:
-            
             db.execute("INSERT INTO users (username, hash) VALUES (%s,%s)", (name, generate_password_hash(password)))
 
             # Postgresql to commit query
@@ -91,21 +90,20 @@ def login():
             return error("You must provide password !")
         
         username = request.form.get("username")
-        rows = db.execute("SELECT * FROM users WHERE username = (%s)", (username,))
-
-        # Postgresql to commit query
-        conn.commit()
+        db.execute("SELECT * FROM users WHERE username = (%s)", (username,))
+        rows = db.fetchall()
         
-        print(db.fetchall())
-        print("DEBUG1")
-        print(rows)
-        print(type(rows))
-
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
             return error("Invalid username or password !")
 
         session["user_id"] = rows[0]["id"]
+
+        # Postgresql to commit query
+        conn.commit()
         
+        # debug
+        print("You are Logged in !")
+
         return redirect("/pickup")
 
     else:
@@ -117,7 +115,9 @@ def login():
 def pickup():
     if request.method == "GET":
         # read sql data into dict row
-        rows = db.execute("SELECT exercise_name FROM exercise_list")
+        db.execute("SELECT exercise_name FROM exercise_list")
+        rows = db.fetchall()
+        conn.commit()
         return render_template("/pickup.html", rows=rows)
     else:
         # take chosen exercise, save into variable and then load query from db where chosen ex. name and picture name matches, so the picture can be rendered in html
@@ -125,7 +125,8 @@ def pickup():
         # save chosen exercise into session, to be later used for database insertion line 144
         session["chosen_exercise"] = request.form.get("exercise_list")
 
-        data = db.execute("SELECT picture_name FROM exercise_list WHERE exercise_name = ?", exlistname)
+        db.execute("SELECT picture_name FROM exercise_list WHERE exercise_name = (%s)", (exlistname,))
+        data = db.fetchall()
         session["picture_name"] = data[0]["picture_name"]
         return render_template("/exercise.html", chosen_exercise=session["picture_name"], exercise_name=session["chosen_exercise"])
 
@@ -173,9 +174,13 @@ def exercise():
             return error("You must provide weight amount !")
 
         #insert user input data into database
-        db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (?, ?, ?, ?, ?),(?, ?, ?, ?, ?),(?, ?, ?, ?, ?),(?, ?, ?, ?, ?)",session["user_id"], session["chosen_exercise"], series1, reps1, weight1, session["user_id"], session["chosen_exercise"], series2, reps2, weight2, session["user_id"], session["chosen_exercise"], series3, reps3, weight3, session["user_id"], session["chosen_exercise"], series4, reps4, weight4)
+        db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series1, reps1, weight1))
+        db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series2, reps2, weight2))
+        db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series3, reps3, weight3))
+        db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series4, reps4, weight4)) 
+        
+        conn.commit()
 
-        # apply whole logic
         return redirect("/pickup")
 
 
@@ -184,7 +189,9 @@ def exercise():
 @login_required
 def history():
     #select data to be shown based on user logged in
-    rows = db.execute("SELECT datetime, exercise_name, series, reps, weight FROM history WHERE id = ?", session["user_id"])
+    db.execute("SELECT datetime, exercise_name, series, reps, weight FROM history WHERE id = (%s)", (session["user_id"],))
+    rows = db.fetchall()
+    conn.commit()
     return render_template("history.html", rows=rows)
 
 
