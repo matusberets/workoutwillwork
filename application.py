@@ -33,7 +33,7 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-#  
+#   
 DB_HOST = "ec2-52-211-161-21.eu-west-1.compute.amazonaws.com"
 DB_NAME = "d5gpufg0ht2tcv"
 DB_USER = "jorqzsdckjpref"
@@ -69,6 +69,9 @@ def register():
         if password != confirm:
             return error("Your passwords do not match, confirm identical password")
         else:
+            conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
+            db = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
             db.execute("INSERT INTO users (username, hash) VALUES (%s,%s)", (name, generate_password_hash(password)))
 
             # Postgresql to commit query
@@ -83,13 +86,16 @@ def register():
 def login():
     session.clear()
     if request.method == "POST":
-
         if not request.form.get("username"):
             return error("You must provide username !")
         elif not request.form.get("password"):
             return error("You must provide password !")
         
         username = request.form.get("username")
+
+        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
+        db = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        
         db.execute("SELECT * FROM users WHERE username = (%s)", (username,))
         rows = db.fetchall()
         
@@ -115,6 +121,9 @@ def login():
 def pickup():
     if request.method == "GET":
         # read sql data into dict row
+        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
+        db = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        
         db.execute("SELECT exercise_name FROM exercise_list")
         rows = db.fetchall()
         conn.commit()
@@ -125,6 +134,9 @@ def pickup():
         # save chosen exercise into session, to be later used for database insertion line 144
         session["chosen_exercise"] = request.form.get("exercise_list")
 
+        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
+        db = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
         db.execute("SELECT picture_name FROM exercise_list WHERE exercise_name = (%s)", (exlistname,))
         data = db.fetchall()
         session["picture_name"] = data[0]["picture_name"]
@@ -134,6 +146,7 @@ def pickup():
 # Choosing from various type of exercises show chosen exercise header and a picture,
 # let user define amount of weight lifted, define number of repetitions and possible text comments
 @app.route("/exercise", methods=["GET", "POST"])
+
 @login_required
 def exercise():
     if request.method == "GET":
@@ -172,6 +185,9 @@ def exercise():
             return error("You must provide reps amount !")
         if not weight4:
             return error("You must provide weight amount !")
+        
+        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
+        db = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
         #insert user input data into database
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series1, reps1, weight1))
@@ -188,6 +204,8 @@ def exercise():
 @app.route("/history")
 @login_required
 def history():
+    conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
+    db = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     #select data to be shown based on user logged in
     db.execute("SELECT datetime, exercise_name, series, reps, weight FROM history WHERE id = (%s)", (session["user_id"],))
     rows = db.fetchall()
