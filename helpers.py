@@ -1,6 +1,9 @@
 # I have took an inspiration from CS50 ProblemSet no.8. Thank you for that CS50 team !
 
 import os
+import psycopg2
+import psycopg2.extras
+
 
 from flask import redirect, session, render_template
 from functools import wraps
