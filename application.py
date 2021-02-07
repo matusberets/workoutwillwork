@@ -211,36 +211,16 @@ def exercise():
         #estabilish PSQL connection
         conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
         db = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series1, reps1, weight1))
         conn.commit()
-
-        # close database connection
-        db.close()
-        conn.close()
-
-        #estabilish PSQL connection
-        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-        db = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series2, reps2, weight2))
         conn.commit()
 
-        # close database connection
-        db.close()
-        conn.close()
-
-        #estabilish PSQL connection
-        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-        db = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series3, reps3, weight3))
         conn.commit()
-        
-        # close database connection
-        db.close()
-        conn.close()
 
-        #estabilish PSQL connection
-        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-        db = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series4, reps4, weight4)) 
         conn.commit()
 
