@@ -120,8 +120,7 @@ def login():
 
         # Postgresql to commit query
         conn.commit()
-    
-    
+        
         # close database connection
         db.close()
         conn.close()
