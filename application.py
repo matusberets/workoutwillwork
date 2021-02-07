@@ -115,7 +115,7 @@ def login():
         conn.close()
 
         print("Session after login")
-        print(f"", Session["user_id"])
+        print("",session["user_id"])
 
         return redirect("/pickup")
 
@@ -140,6 +140,10 @@ def pickup():
         # close database connection
         db.close()
         conn.close()
+
+        #debug
+        print("Session after pickup")
+        print("",session["user_id"])
 
         return render_template("/pickup.html", rows=rows)
 
