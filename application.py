@@ -52,11 +52,6 @@ def index():
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
-    DB_HOST = "ec2-52-211-161-21.eu-west-1.compute.amazonaws.com"
-    DB_NAME = "d5gpufg0ht2tcv"
-    DB_USER = "jorqzsdckjpref"
-    DB_PASS = "e757bbed8d7f33357c6c52e446df4b9863300b89ad7cdfbee42682a247e1e4cd"
-
     #estabilish PSQL connection
     conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
     db = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -91,12 +86,6 @@ def register():
 # Login function used from CS50 ProblemSet no.8. Thank you for that CS50 team !
 @app.route("/login", methods=["GET", "POST"])
 def login():
-
-    DB_HOST = "ec2-52-211-161-21.eu-west-1.compute.amazonaws.com"
-    DB_NAME = "d5gpufg0ht2tcv"
-    DB_USER = "jorqzsdckjpref"
-    DB_PASS = "e757bbed8d7f33357c6c52e446df4b9863300b89ad7cdfbee42682a247e1e4cd"
-    
     session.clear()
     if request.method == "POST":
         if not request.form.get("username"):
@@ -124,6 +113,9 @@ def login():
         # close database connection
         db.close()
         conn.close()
+
+        print("Session after login")
+        print(f"", Session["user_id"])
 
         return redirect("/pickup")
 
