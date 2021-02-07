@@ -233,6 +233,10 @@ def exercise():
         db.close()
         conn.close()
 
+        #debug
+        print("Session after Exercise submit")
+        print("",session["user_id"])
+
         return redirect("/pickup")
 
 
@@ -248,6 +252,10 @@ def history():
     db.execute("SELECT datetime, exercise_name, series, reps, weight FROM history WHERE id = (%s)", (session["user_id"],))
     rows = db.fetchall()
     conn.commit()
+
+    #debug
+    print("Session after history")
+    print("",session["user_id"])
 
     # close database connection
     db.close()
