@@ -245,12 +245,7 @@ def history():
     #select data to be shown based on user logged in
     db.execute("SELECT datetime, exercise_name, series, reps, weight FROM history WHERE id = (%s)", (session["user_id"],))
     rows = db.fetchall()
-    conn.commit()
-
-    #debug
-    print("Session after history")
-    print("",session["user_id"])
-
+    
     # close database connection
     db.close()
     conn.close()
