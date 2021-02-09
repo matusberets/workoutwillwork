@@ -132,13 +132,11 @@ def pickup():
         # read sql data into dict row
         db.execute("SELECT exercise_name FROM exercise_list")
         rows = db.fetchall()
-        conn.commit()
-
+        
         # close database connection
         db.close()
         conn.close()
      
-
         return render_template("/pickup.html", rows=rows)
 
     else:
