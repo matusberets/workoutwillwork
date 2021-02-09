@@ -106,10 +106,7 @@ def login():
             return error("Invalid username or password !")
 
         session["user_id"] = rows[0]["id"]
-
-        # Postgresql to commit query
-        conn.commit()
-        
+         
         # close database connection
         db.close()
         conn.close()
