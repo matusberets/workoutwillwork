@@ -39,6 +39,7 @@ DB_NAME = "d5gpufg0ht2tcv"
 DB_USER = "jorqzsdckjpref"
 DB_PASS = "e757bbed8d7f33357c6c52e446df4b9863300b89ad7cdfbee42682a247e1e4cd"
 
+# PSQL create cursor
 db = connect_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 #global variable list for storing chosen picture
@@ -70,10 +71,15 @@ def register():
         if password != confirm:
             return error("Your passwords do not match, confirm identical password")
         else:
+            db = connect_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
             db.execute("INSERT INTO users (username, hash) VALUES (%s,%s)", (name, generate_password_hash(password)))
 
             # Postgresql to commit query
-            connect_db().commit()      
+            connect_db().commit()     
+
+            # close database connection
+            db.close()
+            connect_db().close()
               
     return redirect("/")
 
@@ -89,7 +95,8 @@ def login():
             return error("You must provide password !")
         
         username = request.form.get("username")
-                       
+
+        db = connect_db().cursor(cursor_factory=psycopg2.extras.DictCursor)                       
         db.execute("SELECT * FROM users WHERE username = (%s)", (username,))
         rows = db.fetchall()
         
@@ -110,8 +117,13 @@ def pickup():
     if request.method == "GET":
 
         # read sql data into dict row
+        db = connect_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
         db.execute("SELECT exercise_name FROM exercise_list")
         rows = db.fetchall()
+
+        # close database connection
+        db.close()
+        connect_db().close()
      
         return render_template("/pickup.html", rows=rows)
 
@@ -121,9 +133,14 @@ def pickup():
         # save chosen exercise into session, to be later used for database insertion line 144
         session["chosen_exercise"] = request.form.get("exercise_list")
 
+        db = connect_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
         db.execute("SELECT picture_name FROM exercise_list WHERE exercise_name = (%s)", (exlistname,))
         data = db.fetchall()
         session["picture_name"] = data[0]["picture_name"]
+
+        # close database connection
+        db.close()
+        connect_db().close()
 
         return render_template("/exercise.html", chosen_exercise=session["picture_name"], exercise_name=session["chosen_exercise"])
 
@@ -172,6 +189,7 @@ def exercise():
         if not weight4:
             return error("You must provide weight amount !")
         
+        db = connect_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series1, reps1, weight1))
         connect_db().commit()
         
@@ -183,6 +201,10 @@ def exercise():
 
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series4, reps4, weight4)) 
         connect_db().commit()
+
+        # close database connection
+        db.close()
+        connect_db().close()
         
         return redirect("/pickup")
 
@@ -193,9 +215,14 @@ def exercise():
 def history():
 
     #select data to be shown based on user logged in
+    db = connect_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
     db.execute("SELECT datetime, exercise_name, series, reps, weight FROM history WHERE id = (%s)", (session["user_id"],))
     rows = db.fetchall()
     
+    # close database connection
+    db.close()
+    connect_db().close()
+
     return render_template("history.html", rows=rows)
 
 
@@ -204,6 +231,7 @@ def logout():
     session.clear()     
     
     # close database connection
+    db.close()
     connect_db().close()
 
     return redirect("/")
