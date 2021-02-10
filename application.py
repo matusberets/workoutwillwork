@@ -5,7 +5,7 @@ import psycopg2
 import psycopg2.extras
 
 #from cs50 import SQL
-from flask import Flask, flash, jsonify, redirect, render_template, request, session, g
+from flask import Flask, flash, jsonify, redirect, render_template, request, session
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
@@ -73,7 +73,7 @@ def register():
             db.execute("INSERT INTO users (username, hash) VALUES (%s,%s)", (name, generate_password_hash(password)))
 
             # Postgresql to commit query
-            conn.commit()      
+            connect_db().commit()      
               
     return redirect("/")
 
@@ -173,16 +173,16 @@ def exercise():
             return error("You must provide weight amount !")
         
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series1, reps1, weight1))
-        conn.commit()
+        connect_db().commit()
         
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series2, reps2, weight2))
-        conn.commit()
+        connect_db().commit()
 
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series3, reps3, weight3))
-        conn.commit()
+        connect_db().commit()
 
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series4, reps4, weight4)) 
-        conn.commit()
+        connect_db().commit()
         
         return redirect("/pickup")
 
