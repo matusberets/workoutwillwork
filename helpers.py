@@ -36,10 +36,8 @@ def connect_db():
 
     return conn
 
-#def get_db():
-#    """Opens a new database connection if there is none yet for the
-#    current application context.
-#    """
-#    if 'db' not in g:
-#        g.db = connect_db()
-#    return g.db 
+def get_db():
+    """Opens a new database connection if there is none yet for the current application context."""
+    if not hasattr(psycopg2, 'connect'):
+        g.connect = connect_db()
+    return g.connect
