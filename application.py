@@ -36,7 +36,6 @@ Session(app)
 #global variable list for storing chosen picture
 chosen_exercise = []
 
-
 # default page
 @app.route("/", methods=["GET"])
 @login_required
@@ -66,7 +65,7 @@ def register():
             db.execute("INSERT INTO users (username, hash) VALUES (%s,%s)", (name, generate_password_hash(password)))
 
             # Postgresql to commit query
-            connect_db().commit()     
+            get_db().commit()
             
     return redirect("/")
 
@@ -91,6 +90,8 @@ def login():
             return error("Invalid username or password !")
 
         session["user_id"] = rows[0]["id"]
+
+        # store user name into session to be displayed after login
         session["user_name"] = rows[0]["username"]
 
         return redirect("/pickup")
@@ -103,7 +104,6 @@ def login():
 @app.route("/pickup", methods=["GET", "POST"])
 def pickup():
     if request.method == "GET":
-
         db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
         db.execute("SELECT exercise_name FROM exercise_list")
         rows = db.fetchall()
@@ -115,7 +115,7 @@ def pickup():
         exlistname = request.form.get("exercise_list")
         # save chosen exercise into session, to be later used for database insertion line 144
         session["chosen_exercise"] = request.form.get("exercise_list")
-
+        
         db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
         db.execute("SELECT picture_name FROM exercise_list WHERE exercise_name = (%s)", (exlistname,))
         data = db.fetchall()
@@ -168,19 +168,13 @@ def exercise():
             return error("You must provide reps amount !")
         if not weight4:
             return error("You must provide weight amount !")
-        
-        db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
-        db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series1, reps1, weight1))
-        connect_db().commit()
-        
+
+        db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)        
+        db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series1, reps1, weight1))    
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series2, reps2, weight2))
-        connect_db().commit()
-
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series3, reps3, weight3))
-        connect_db().commit()
-
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series4, reps4, weight4)) 
-        connect_db().commit()
+        get_db().commit()
 
         return redirect("/pickup")
 
@@ -189,7 +183,7 @@ def exercise():
 @app.route("/history")
 @login_required
 def history():
-
+    
     db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
     #select data to be shown based on user logged in
     db.execute("SELECT datetime, exercise_name, series, reps, weight FROM history WHERE id = (%s)", (session["user_id"],))
@@ -201,7 +195,6 @@ def history():
 @app.route("/logout")
 def logout():
     session.clear()     
-
     return redirect("/")
 
 
@@ -211,7 +204,3 @@ def close_db(error):
     if hasattr(g, 'sqlite_db'):
         g.sqlite_db.close()
         print("Connection closed !")
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
