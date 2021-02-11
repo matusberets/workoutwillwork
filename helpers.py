@@ -33,11 +33,11 @@ def connect_db():
     DB_PASS = "e757bbed8d7f33357c6c52e446df4b9863300b89ad7cdfbee42682a247e1e4cd"
 
     conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
-
     return conn
 
+# connect to the database
 def get_db():
     """Opens a new database connection if there is none yet for the current application context."""
-    if not hasattr(psycopg2, 'connect'):
-        g.connect = connect_db()
-    return g.connect
+    if not hasattr(g, 'psql'):
+        g.psql = connect_db()
+    return g.psql

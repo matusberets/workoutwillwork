@@ -1,4 +1,3 @@
-# I used a code from CS50 ProblemSet no.8. Thank you for that CS50 team !
 import os
 import sys
 import psycopg2
@@ -11,7 +10,7 @@ from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helpers import login_required, error, connect_db, get_db
+from helpers import login_required, error, connect_db, g, get_db
 
 
 # Configure application
@@ -35,13 +34,13 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 #estabilish PSQL connection   
-DB_HOST = "ec2-52-211-161-21.eu-west-1.compute.amazonaws.com"
-DB_NAME = "d5gpufg0ht2tcv"
-DB_USER = "jorqzsdckjpref"
-DB_PASS = "e757bbed8d7f33357c6c52e446df4b9863300b89ad7cdfbee42682a247e1e4cd"
+#DB_HOST = "ec2-52-211-161-21.eu-west-1.compute.amazonaws.com"
+#DB_NAME = "d5gpufg0ht2tcv"
+#DB_USER = "jorqzsdckjpref"
+#DB_PASS = "e757bbed8d7f33357c6c52e446df4b9863300b89ad7cdfbee42682a247e1e4cd"
 
 # PSQL create cursor
-db = connect_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
+#db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 #global variable list for storing chosen picture
 chosen_exercise = []
@@ -72,10 +71,11 @@ def register():
         if password != confirm:
             return error("Your passwords do not match, confirm identical password")
         else:
+            db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
             db.execute("INSERT INTO users (username, hash) VALUES (%s,%s)", (name, generate_password_hash(password)))
 
             # Postgresql to commit query
-            connect_db().commit()     
+            get_db().commit()     
             
     return redirect("/")
 
@@ -92,6 +92,7 @@ def login():
         
         username = request.form.get("username")
 
+        db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
         db.execute("SELECT * FROM users WHERE username = (%s)", (username,))
         rows = db.fetchall()
         
@@ -110,6 +111,8 @@ def login():
 @app.route("/pickup", methods=["GET", "POST"])
 def pickup():
     if request.method == "GET":
+
+        db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
         db.execute("SELECT exercise_name FROM exercise_list")
         rows = db.fetchall()
 
@@ -121,6 +124,7 @@ def pickup():
         # save chosen exercise into session, to be later used for database insertion line 144
         session["chosen_exercise"] = request.form.get("exercise_list")
 
+        db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
         db.execute("SELECT picture_name FROM exercise_list WHERE exercise_name = (%s)", (exlistname,))
         data = db.fetchall()
         session["picture_name"] = data[0]["picture_name"]
@@ -172,17 +176,18 @@ def exercise():
         if not weight4:
             return error("You must provide weight amount !")
         
+        db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series1, reps1, weight1))
-        connect_db().commit()
+        get_db().commit()
         
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series2, reps2, weight2))
-        connect_db().commit()
+        get_db().commit()
 
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series3, reps3, weight3))
-        connect_db().commit()
+        get_db().commit()
 
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series4, reps4, weight4)) 
-        connect_db().commit()
+        get_db().commit()
 
         return redirect("/pickup")
 
@@ -192,6 +197,7 @@ def exercise():
 @login_required
 def history():
 
+    db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
     #select data to be shown based on user logged in
     db.execute("SELECT datetime, exercise_name, series, reps, weight FROM history WHERE id = (%s)", (session["user_id"],))
     rows = db.fetchall() 
@@ -204,7 +210,18 @@ def logout():
     session.clear()     
     
     # close database connection and cursor
-    db.close()
-    connect_db().close()
+    # db.close()
+    # get_db().close()
 
     return redirect("/")
+
+
+@app.teardown_appcontext
+def close_db(error):
+    """Closes the database again at the end of the request."""
+    if hasattr(g, 'sqlite_db'):
+        g.sqlite_db.close()
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
