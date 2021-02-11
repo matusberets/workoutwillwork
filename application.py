@@ -33,15 +33,6 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-#estabilish PSQL connection   
-#DB_HOST = "ec2-52-211-161-21.eu-west-1.compute.amazonaws.com"
-#DB_NAME = "d5gpufg0ht2tcv"
-#DB_USER = "jorqzsdckjpref"
-#DB_PASS = "e757bbed8d7f33357c6c52e446df4b9863300b89ad7cdfbee42682a247e1e4cd"
-
-# PSQL create cursor
-#db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
-
 #global variable list for storing chosen picture
 chosen_exercise = []
 
@@ -127,6 +118,7 @@ def pickup():
         db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
         db.execute("SELECT picture_name FROM exercise_list WHERE exercise_name = (%s)", (exlistname,))
         data = db.fetchall()
+
         session["picture_name"] = data[0]["picture_name"]
 
         return render_template("/exercise.html", chosen_exercise=session["picture_name"], exercise_name=session["chosen_exercise"])
@@ -221,6 +213,7 @@ def close_db(error):
     """Closes the database again at the end of the request."""
     if hasattr(g, 'sqlite_db'):
         g.sqlite_db.close()
+        print("Connection closed !")
 
 
 if __name__ == '__main__':
