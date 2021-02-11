@@ -90,7 +90,8 @@ def login():
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
             return error("Invalid username or password !")
 
-        session["user_id"] = rows[0]["id"]     
+        session["user_id"] = rows[0]["id"]
+        session["user_name"] = rows[0]["username"]
 
         return redirect("/pickup")
 
