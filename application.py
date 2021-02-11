@@ -66,7 +66,7 @@ def register():
             db.execute("INSERT INTO users (username, hash) VALUES (%s,%s)", (name, generate_password_hash(password)))
 
             # Postgresql to commit query
-            get_db().commit()     
+            connect_db().commit()     
             
     return redirect("/")
 
@@ -171,16 +171,16 @@ def exercise():
         
         db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series1, reps1, weight1))
-        get_db().commit()
+        connect_db().commit()
         
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series2, reps2, weight2))
-        get_db().commit()
+        connect_db().commit()
 
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series3, reps3, weight3))
-        get_db().commit()
+        connect_db().commit()
 
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series4, reps4, weight4)) 
-        get_db().commit()
+        connect_db().commit()
 
         return redirect("/pickup")
 
@@ -201,10 +201,6 @@ def history():
 @app.route("/logout")
 def logout():
     session.clear()     
-    
-    # close database connection and cursor
-    # db.close()
-    # get_db().close()
 
     return redirect("/")
 
