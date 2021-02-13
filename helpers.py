@@ -39,6 +39,6 @@ def connect_db():
 def get_db():
     """Opens a new database connection if there is none yet for the current application context."""
     if not hasattr(g, 'psql'):
-        print("Connection restabilished !")
+        print("Connection Estabilished !")
         g.psql = connect_db()
     return g.psql

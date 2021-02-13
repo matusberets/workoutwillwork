@@ -29,7 +29,7 @@ def after_request(response):
 
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_FILE_DIR"] = mkdtemp()
-#app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
@@ -201,6 +201,6 @@ def logout():
 @app.teardown_appcontext
 def close_db(error):
     """Closes the database again at the end of the request."""
-    if hasattr(g, 'sqlite_db'):
-        g.sqlite_db.close()
+    if hasattr(g, 'psql'):
+        g.psql.close()
         print("Connection closed !")
