@@ -171,8 +171,17 @@ def exercise():
 
         db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)        
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series1, reps1, weight1))    
+        get_db().commit()
+
+        db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)        
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series2, reps2, weight2))
+        get_db().commit()
+
+        db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)        
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series3, reps3, weight3))
+        get_db().commit()
+
+        db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)        
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series4, reps4, weight4)) 
         get_db().commit()
 
