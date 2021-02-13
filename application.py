@@ -104,6 +104,12 @@ def login():
 @app.route("/pickup", methods=["GET", "POST"])
 def pickup():
     if request.method == "GET":
+
+        #debug
+        print("/pickup route GET")
+        print(session["user_id"])
+        print(session["user_name"])
+
         db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
         db.execute("SELECT exercise_name FROM exercise_list")
         rows = db.fetchall()
@@ -111,6 +117,11 @@ def pickup():
         return render_template("/pickup.html", rows=rows)
 
     else:
+        #debug
+        print("/pickup route POST")
+        print(session["user_id"])
+        print(session["user_name"])
+
         # take chosen exercise, save into variable and then load query from db where chosen ex. name and picture name matches, so the picture can be rendered in html
         exlistname = request.form.get("exercise_list")
         # save chosen exercise into session, to be later used for database insertion line 144
@@ -132,8 +143,19 @@ def pickup():
 @login_required
 def exercise():
     if request.method == "GET":
+
+        #debug
+        print("/exercise route GET")
+        print(session["user_id"])
+        print(session["user_name"])
+
         return render_template("exercise.html")
     else:
+
+        #debug
+        print("/exercise route POST")
+        print(session["user_id"])
+        print(session["user_name"])
 
         # assign user input into variables, so these can be written into database
         # serie no.1
@@ -184,6 +206,12 @@ def exercise():
         db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)        
         db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series4, reps4, weight4)) 
         get_db().commit()
+        
+        #debug
+        print("/exercise route POST after INSERT INTO DB")
+        print(session["user_id"])
+        print(session["user_name"])
+
 
         return redirect("/pickup")
 
@@ -192,11 +220,21 @@ def exercise():
 @app.route("/history")
 @login_required
 def history():
+
+    #debug
+    print("/history route before DB connection")
+    print(session["user_id"])
+    print(session["user_name"])
     
     db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
     #select data to be shown based on user logged in
     db.execute("SELECT datetime, exercise_name, series, reps, weight FROM history WHERE id = (%s)", (session["user_id"],))
     rows = db.fetchall() 
+
+    #debug
+    print("/history route after DB connection")
+    print(session["user_id"])
+    print(session["user_name"])
 
     return render_template("history.html", rows=rows)
 
