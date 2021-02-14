@@ -102,6 +102,7 @@ def login():
 
 # choose an exercise
 @app.route("/pickup", methods=["GET", "POST"])
+@login_required
 def pickup():
     if request.method == "GET":
 
@@ -135,7 +136,6 @@ def pickup():
 # Choosing from various type of exercises show chosen exercise header and a picture,
 # let user define amount of weight lifted, define number of repetitions and possible text comments
 @app.route("/exercise", methods=["GET", "POST"])
-
 @login_required
 def exercise():
     if request.method == "GET":
@@ -225,6 +225,7 @@ def history():
 
 
 @app.route("/logout")
+@login_required
 def logout():
     session.clear()     
     return redirect("/")
