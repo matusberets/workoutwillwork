@@ -10,7 +10,7 @@ from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helpers import login_required, error, connect_db, g, get_db
+from helpers import login_required, error, connect_db, g, get_db, debug_print
 
 
 # Configure application
@@ -106,10 +106,8 @@ def pickup():
     if request.method == "GET":
 
         #debug
-        print("/pickup route GET")
-        print(session["user_id"])
-        print(session["user_name"])
-
+        debug_print()
+        
         db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
         db.execute("SELECT exercise_name FROM exercise_list")
         rows = db.fetchall()
@@ -118,10 +116,8 @@ def pickup():
 
     else:
         #debug
-        print("/pickup route POST")
-        print(session["user_id"])
-        print(session["user_name"])
-
+        debug_print()
+        
         # take chosen exercise, save into variable and then load query from db where chosen ex. name and picture name matches, so the picture can be rendered in html
         exlistname = request.form.get("exercise_list")
         # save chosen exercise into session, to be later used for database insertion line 144
@@ -145,17 +141,13 @@ def exercise():
     if request.method == "GET":
 
         #debug
-        print("/exercise route GET")
-        print(session["user_id"])
-        print(session["user_name"])
+        debug_print()
 
         return render_template("exercise.html")
     else:
 
         #debug
-        print("/exercise route POST")
-        print(session["user_id"])
-        print(session["user_name"])
+        debug_print()
 
         # assign user input into variables, so these can be written into database
         # serie no.1
@@ -208,10 +200,7 @@ def exercise():
         get_db().commit()
         
         #debug
-        print("/exercise route POST after INSERT INTO DB")
-        print(session["user_id"])
-        print(session["user_name"])
-
+        debug_print()
 
         return redirect("/pickup")
 
@@ -222,19 +211,15 @@ def exercise():
 def history():
 
     #debug
-    print("/history route before DB connection")
-    print(session["user_id"])
-    print(session["user_name"])
-    
+    debug_print()
+
     db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
     #select data to be shown based on user logged in
     db.execute("SELECT datetime, exercise_name, series, reps, weight FROM history WHERE id = (%s)", (session["user_id"],))
     rows = db.fetchall() 
 
     #debug
-    print("/history route after DB connection")
-    print(session["user_id"])
-    print(session["user_name"])
+    debug_print()
 
     return render_template("history.html", rows=rows)
 

@@ -42,3 +42,10 @@ def get_db():
         print("Connection Estabilished !")
         g.psql = connect_db()
     return g.psql
+
+# debuging to see sessions
+def debug_print():
+    print("DEBUG")
+    print("Session user_id: ", session["user_id"])
+    print("session username: ", session["user_name"])
+    return
