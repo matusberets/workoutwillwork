@@ -10,7 +10,7 @@ from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helpers import login_required, error, connect_db, g, get_db, debug_print
+from helpers import login_required, error, connect_db, get_db, debug_print
 
 
 # Configure application
@@ -38,7 +38,6 @@ chosen_exercise = []
 
 # default page
 @app.route("/", methods=["GET"])
-@login_required
 def index():
     return render_template("login.html")
 
@@ -67,7 +66,7 @@ def register():
             # Postgresql to commit query
             get_db().commit()
             
-    return redirect("/")
+    return redirect("/login")
 
 
 # Login function used from CS50 ProblemSet no.8. Thank you for that CS50 team !
@@ -94,7 +93,7 @@ def login():
         # store user name into session to be displayed after login
         session["user_name"] = rows[0]["username"]
 
-        return redirect("/pickup")
+        return redirect("/history")
 
     else:
         return render_template("login.html")
@@ -225,7 +224,6 @@ def history():
 
 
 @app.route("/logout")
-@login_required
 def logout():
     session.clear()     
     return redirect("/")
