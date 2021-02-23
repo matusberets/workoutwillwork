@@ -1,5 +1,3 @@
-# I have took an inspiration from CS50 ProblemSet no.8. Thank you for that CS50 team !
-
 import os
 import psycopg2
 import psycopg2.extras
@@ -43,6 +41,17 @@ def get_db():
         print("Connection Estabilished !")
         g.psql = connect_db()
     return g.psql
+
+
+class Exercise():
+    def __init__(self, series, reps, weight):
+        self.series = series
+        self.reps = reps
+        self.weight = weight
+    
+    def is_valid(self):
+        return self.reps and self.weight
+
 
 # debuging to see sessions
 def debug_print():

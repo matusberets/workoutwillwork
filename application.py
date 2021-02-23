@@ -3,16 +3,14 @@ import sys
 import psycopg2
 import psycopg2.extras
 
-#from cs50 import SQL
+
 from flask import Flask, flash, jsonify, redirect, render_template, request, session
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helpers import login_required, error, connect_db, get_db, debug_print, g
-
-
+from helpers import login_required, error, connect_db, get_db, debug_print, g, Exercise 
 
 # Configure application
 app = Flask(__name__)
@@ -36,6 +34,10 @@ Session(app)
 
 #global variable list for storing chosen picture
 chosen_exercise = []
+
+# list to store a requests
+exercises = []
+
 
 # default page
 @app.route("/", methods=["GET"])
@@ -106,9 +108,6 @@ def login():
 def pickup():
     if request.method == "GET":
 
-        #debug
-        debug_print()
-        
         db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
         db.execute("SELECT exercise_name FROM exercise_list")
         rows = db.fetchall()
@@ -116,9 +115,6 @@ def pickup():
         return render_template("/pickup.html", rows=rows)
 
     else:
-        #debug
-        debug_print()
-        
         # take chosen exercise, save into variable and then load query from db where chosen ex. name and picture name matches, so the picture can be rendered in html
         exlistname = request.form.get("exercise_list")
         # save chosen exercise into session, to be later used for database insertion line 144
@@ -139,69 +135,24 @@ def pickup():
 @login_required
 def exercise():
     if request.method == "GET":
-
-        #debug
-        debug_print()
-
         return render_template("exercise.html")
+
     else:
+        #OOP approach written by Johann, my brother in Christ :) Let our Lord bless him and his family !
+        for x in range(1, 4):
+            exercises.append( Exercise( request.form.get("series" + str(x)), request.form.get("reps" + str(x)), request.form.get("weight" + str(x))))
 
-        #debug
-        debug_print()
-
-        # assign user input into variables, so these can be written into database
-        # serie no.1
-        series1 = request.form.get("series1")
-        reps1 = request.form.get("reps1")
-        weight1 = request.form.get("weight1")
-        if not reps1:
-            return error("You must provide reps amount !")
-        if not weight1:
-            return error("You must provide weight amount !")
-        # serie no.2
-        series2 = request.form.get("series2")
-        reps2 = request.form.get("reps2")
-        weight2 = request.form.get("weight2")
-        if not reps2:
-            return error("You must provide reps amount !")
-        if not weight2:
-            return error("You must provide weight amount !")
-        # serie no.3
-        series3 = request.form.get("series3")
-        reps3 = request.form.get("reps3")
-        weight3 = request.form.get("weight3")
-        if not reps3:
-            return error("You must provide reps amount !")
-        if not weight3:
-            return error("You must provide weight amount !")
-        # serie no.4
-        series4 = request.form.get("series4")
-        reps4 = request.form.get("reps4")
-        weight4 = request.form.get("weight4")
-        if not reps4:
-            return error("You must provide reps amount !")
-        if not weight4:
-            return error("You must provide weight amount !")
-
-        db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)        
-        db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series1, reps1, weight1))    
-        get_db().commit()
-
-        db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)        
-        db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series2, reps2, weight2))
-        get_db().commit()
-
-        db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)        
-        db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series3, reps3, weight3))
-        get_db().commit()
-
-        db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)        
-        db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], series4, reps4, weight4)) 
-        get_db().commit()
+        #empty forms check
+        for i in exercises:
+            if not i.is_valid():
+                return error("You must provide reps amount and weight")
         
-        #debug
-        debug_print()
-
+        # looping over list exercises
+        for obj in exercises:
+            db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)        
+            db.execute("INSERT INTO history (id, exercise_name, series, reps, weight) VALUES (%s,%s,%s,%s,%s)", (session["user_id"], session["chosen_exercise"], obj.series, obj.reps, obj.weight))    
+            get_db().commit()
+        
         return redirect("/pickup")
 
 
@@ -209,17 +160,11 @@ def exercise():
 @app.route("/history")
 @login_required
 def history():
-
-    #debug
-    debug_print()
-
+    
     db = get_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
     #select data to be shown based on user logged in
     db.execute("SELECT datetime, exercise_name, series, reps, weight FROM history WHERE id = (%s)", (session["user_id"],))
     rows = db.fetchall() 
-
-    #debug
-    debug_print()
 
     return render_template("history.html", rows=rows)
 
