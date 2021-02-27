@@ -3,7 +3,7 @@ import sys
 import psycopg2
 import psycopg2.extras
 
-
+from datetime import datetime
 from flask import Flask, flash, jsonify, redirect, render_template, request, session
 from flask_session import Session
 from tempfile import mkdtemp
@@ -139,10 +139,10 @@ def exercise():
 
     else:
         #OOP approach written by Johann, my brother in Christ :) Let our Lord bless him and his family !
-        for x in range(1, 4):
+        for x in range(1,5):
             exercises.append( Exercise( request.form.get("series" + str(x)), request.form.get("reps" + str(x)), request.form.get("weight" + str(x))))
 
-        #empty forms check
+        #empty forms check written by Johann, my brother in Christ :) Let our Lord bless him and his family !
         for i in exercises:
             if not i.is_valid():
                 return error("You must provide reps amount and weight")
@@ -165,6 +165,12 @@ def history():
     #select data to be shown based on user logged in
     db.execute("SELECT datetime, exercise_name, series, reps, weight FROM history WHERE id = (%s)", (session["user_id"],))
     rows = db.fetchall() 
+
+    # format date and time
+    if len(rows) > 0:
+        for row in rows:
+            datetime = row["datetime"]
+            row["datetime"] = datetime.strftime("%d-%m-%Y  %H:%M:%S")    
 
     return render_template("history.html", rows=rows)
 
