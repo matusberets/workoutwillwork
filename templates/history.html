@@ -4,6 +4,12 @@
     History
 {% endblock %}
 
+{% block header %}
+    <script>
+        get_flashed_messages('This is History !')
+    </script>
+{% endblock %}
+
 {% block main %}
     <form action="/history" method="get">
         <div class="form-group">
